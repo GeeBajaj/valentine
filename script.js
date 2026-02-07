@@ -114,6 +114,28 @@ noBtn.addEventListener("mouseover", () => {
         targetTop = Math.max(bottomSegmentStart, Math.min(maxTop, targetTop));
     }
 
+    // Final clamp: ensure all four corners of the button stay inside the viewport
+    const safeRight = vw - padding - noWidth;
+    const safeBottom = vh - padding - noHeight;
+    if (targetLeft < padding) targetLeft = padding;
+    if (targetTop < padding) targetTop = padding;
+    if (targetLeft > safeRight) targetLeft = safeRight;
+    if (targetTop > safeBottom) targetTop = safeBottom;
+    // If that put us in the Yes zone, push out again (may rarely clip at edge)
+    if (targetLeft < yesZoneRight && targetLeft + noWidth > yesZoneLeft) {
+        targetLeft = (targetLeft - yesZoneLeft <= yesZoneRight - (targetLeft + noWidth))
+            ? yesZoneLeft  // No's right edge at yesRect.left - gap
+            : yesZoneRight;
+    }
+    if (targetTop < yesZoneBottom && targetTop + noHeight > yesZoneTop) {
+        targetTop = (targetTop - yesZoneTop <= yesZoneBottom - (targetTop + noHeight))
+            ? yesZoneTop
+            : yesZoneBottom;
+    }
+    // One more viewport clamp so we never go off-screen (prioritize on-screen over gap from Yes)
+    targetLeft = Math.max(padding, Math.min(safeRight, targetLeft));
+    targetTop = Math.max(padding, Math.min(safeBottom, targetTop));
+
     noBtnOffsetX = targetLeft - flowLeft;
     noBtnOffsetY = targetTop - flowTop;
 
